@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart</title>
+    <link rel="stylesheet" href="style.css">
+   
+</head>
+<body>
+  <div class="products-section ">
+
+    <h2 class="Product_head">Our Products</h2>
+      <div class="products">
+          
+      </div>
+
+  </div>
+
+    <div >
+      <div class="cartTable">
+        <div class="table_head">
+        <div class="placeholder"></div>
+        <h3 class="title">My Cart</h3>
+        <button class="clear_btn" onclick="clearAll()">Clear All</button>
+      </div>
+         
+          <table style="min-width: 350px;">
+            
+           <tbody>
+            
+           </tbody>
+           <tfoot>
+             <tr>
+                <th colspan="5" style="padding: 15px 0;">Total</th>
+                <th class="total">0</th>
+             </tr>
+  
+           </tfoot>
+         
+        </table>
+        
+      </div>
+    </div>
+
+
+<script src="cart.js"></script>
+<script>
+
+let productContainer = document.querySelector(".products");
+let productsList = [];
+const cart = new Cart("Shopping");
+
+// Fetch products
+fetch("https://dummyjson.com/products")
+  .then(res => res.json())
+  .then(data => {
+    productsList = data.products;
+    let html = "";
+    productsList.forEach((prod, index) => {
+      
+      html += `
+        <div class="card">
+          <div class="card-img"><img src="${prod.images[0]}" alt="${prod.title}"></div>
+          <div class="description">
+            <h4>${prod.title}</h4>
+            <p>Price: $${prod.price}</p>
+            </div>
+            <button class="card_btn" onclick="addItemById(${prod.id})">Add to Cart</button>
+        </div>        
+
+      `;
+    });
+    productContainer.innerHTML = html;
+  })
+  .catch(err => console.error(err));
+
+function addItemById(id) {
+  let product = productsList.find(p => p.id === id);
+  cart.addItem(product);
+  cartCalculation();
+}
+
+function delItem(id) {
+  cart.delItem(id);
+  cartCalculation();
+}
+
+function decrementItem(id) {
+  cart.decrementItem(id);
+  cartCalculation();
+}
+
+function incrementItem(id) {
+  cart.incrementItem(id);
+  cartCalculation();
+}
+
+function clearAll() {
+  cart.clearItem();
+  cartCalculation();
+}
+
+function cartCalculation() {
+  let tbody = "";
+  let total = 0;
+  let cartitems = cart.getData();
+
+  cartitems.forEach((item, index) => {
+    total += item.qty * item.price;
+    tbody += `
+      <tr>
+          <td rowspan="3"><img src="${item.images[0]}" alt="${item.title}" style="width: 90px;"></td>
+          <td colspan="4"><p style="margin: 0;">${item.title}</p></td>
+          <td rowspan="3" style="padding: 0 20px;">$${(item.qty * item.price).toFixed(2)}</td>
+                
+      </tr>
+      <tr>
+          <td colspan="4">$${item.price} x ${item.qty}</td>
+      </tr>
+      <tr>
+          
+          <td  style="width:90px;">
+            <div class="qnty">
+              <button class="btn-incr" onclick="incrementItem(${item.id})" >+</button>
+              <span  style="padding: 0 5px;">${item.qty}</span>
+              <button class="btn-incr" onclick="decrementItem(${item.id})">-</button>
+            </div>
+          </td>
+          <td colspan="2" ><img class="delete_icon" onclick="delItem(${item.id})" src="img/delete.png" alt="" ></td>
+      </tr>  
+    `;
+  });
+
+  document.querySelector("tbody").innerHTML = tbody;
+  document.querySelector(".total").innerHTML = `$${total.toFixed(2)}`;
+}
+
+cartCalculation();
+</script>
+
+</body>
+</html>
